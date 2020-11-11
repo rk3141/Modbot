@@ -15,6 +15,7 @@ let client: Discord.Client = new Discord.Client();
 
 client.once("ready", () => {
     console.log("Ready!");
+    client.user.setActivity("Helping the Mods");
 })
 
 function pmsg()
