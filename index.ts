@@ -17,7 +17,13 @@ client.once("ready", () => {
     console.log("Ready!");
 })
 
+function pmsg()
+{
+    console.log(msg);
+}
+
 client.on("message", async (msg: Discord.Message) => {
+    pmsg();
     if (msg.guild.channels.cache.find(ch => ch.name == "join") == msg.channel) {
         if (msg.content == "$verify")
         {
