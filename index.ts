@@ -5,7 +5,7 @@ dotenv.config();
 
 // Boilerplate
 /*
-    if (msg.content.startsWith("$report"))
+    if (msg.content.startsWith("$command"))
     {
         
     }
