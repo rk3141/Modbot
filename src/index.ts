@@ -282,3 +282,4 @@ client.on("message", async (msg: Discord.Message) => {
 
 
 client.login(process.env.TOKEN)
+console.log(process.env.TOKEN)
