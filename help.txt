@@ -1,0 +1,21 @@
+`🐱grole`: Gives role to first mentioned
+**Usage**: `$grole @who @role`
+
+`$apnt`: Appoint a moderator
+**Usage**: `$apnt @who`
+
+`$dapnt`: Removes a moderator
+**Usage**: `$dapnt @who`
+
+`$trainee`: Appoint a Trainee mod.
+**Usage**: `$trainee @who`
+
+`$kick`: Pretty obvious I think.
+
+`$ban`: Pretty obvious I think.
+
+`$cr`: Creates a role
+**Usage**: `$cr name_of_the_role #hexcolor`
+
+`$modapply`: Apply for being a mod
+**Usage**: `$modapply "Your reason for being a mod"`

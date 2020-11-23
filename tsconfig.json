@@ -1,0 +1,21 @@
+{ 
+    "compilerOptions": {
+      "moduleResolution": "Node",
+      "target": "es6",
+      "module": "CommonJS",
+      "lib": ["esnext"],
+      "sourceMap": true,
+      "declaration": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "declarationDir": "./dist",
+      "resolveJsonModule": true,
+      "outDir": "./dist",
+      "rootDir": "./src",
+      "typeRoots": ["node_modules/@types"]
+    },
+    "include": ["./src/**/*.ts"],
+    "exclude": ["node_modules", "./dist/**/*"]
+  }

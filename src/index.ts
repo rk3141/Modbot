@@ -1,11 +1,12 @@
 import * as Discord from "discord.js"; 
 import * as dotenv from "dotenv";
+import { byrole, byroles, inchannel, onlycommand, opscommand } from "./utils";
 
 dotenv.config();
 
 // Boilerplate
 /*
-    if (msg.content.startsWith("$command"))
+    if (opscommand(msg,prefix+"command"))
     {
         
     }
@@ -13,15 +14,33 @@ dotenv.config();
 
 let client: Discord.Client = new Discord.Client();
 
-client.once("ready", () => {
+let prefix = "$";
+const onready = () => {
     console.log("Ready!");
-    client.user.setActivity("Helping the Mods");
-})
+    client.user.setActivity(`${prefix}help`);
+};
+
+client.once("ready", onready)
+
+import * as fs from "fs";
+import { join } from "path";
+
+// client.on("guildMemberAdd", (member) => {
+//     member.guild.channels.cache.find(
+//         ch => ch.name == "welcome"
+//     ).send(
+//         `**Welcome <@${member.user.id}>!**`
+//     )
+// })
 
 client.on("message", async (msg: Discord.Message) => {
-    
-    if (msg.guild.channels.cache.find(ch => ch.name == "join") == msg.channel) {
-        if (msg.content == "$verify")
+    if (onlycommand(msg,prefix,"help"))
+    {
+        msg.channel.send(fs.readFileSync("help.txt").toString().replace("$",prefix));
+    }
+
+    if (inchannel(msg,"join")) {
+        if (onlycommand(msg,prefix,"verify"))
         {
             msg.guild.member(msg.author).roles.add(
                 msg.guild.roles.cache.find(role => role.name == "member")
@@ -33,7 +52,65 @@ client.on("message", async (msg: Discord.Message) => {
         }
     }
     
-    if (msg.content.startsWith("$kick") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Mod"))  
+    if (onlycommand(msg,prefix,"ping"))
+    {
+        msg.channel.send("pong")
+    }
+
+    if (onlycommand(msg,prefix,"cleanc"))
+    {
+        msg.channel.messages.cache.array().forEach(
+            message => {
+                if (msg != message)
+                    message.delete({timeout:0})
+            }
+        );
+        
+    }
+    
+    if (opscommand(msg,prefix,"getrole"))
+    {
+        
+    }
+
+    if (opscommand(msg,prefix,"grole"))
+    {
+        let assignee = msg.mentions.members.first();
+        let role = msg.mentions.roles.first();
+        if (!role) {return}
+        if (!assignee) {return}
+        let member = msg.guild.member(assignee);
+        if (!member) {return}
+        if (!(msg.mentions.roles.first().position < msg.guild.member(msg.author).roles.highest.position)){return}
+        member.roles.add(
+            msg.guild.roles.cache.find(
+                rol => rol.name == role.name
+            )
+        ).then(
+            (mem) => {
+                msg.channel.send(`Gave <@&${role.id}> to <@${mem.id}>`)
+            }
+        ).catch(
+            () => {
+                msg.channel.send(`Couldn't give <@&${role.id}>`)
+            }
+        )
+    }
+
+    // https://discord.com/channels/756365171038879797/775645460769669161/775656803777511424
+    if (opscommand(msg,prefix,"money"))
+    {
+        switch (msg.content.split(" ")[1])
+        {
+            case undefined:
+            break;
+            case "bal":
+                if (msg.mentions.members.first()) {  }
+            break;
+        }
+    }
+
+    if (opscommand(msg,prefix,"kick") && byroles(msg,["Mod","Owner"]))
     {
         let user = msg.mentions.members.first();
         if (!user)
@@ -50,7 +127,7 @@ client.on("message", async (msg: Discord.Message) => {
             (msg.content.split(" ").slice(2,msg.content.split(" ").length) ? msg.content.split(" ").slice(2,msg.content.split(" ").length) : []).join(" ")
         ).then(
             (member) => {
-                msg.channel.send(`Successfully kicked "${member.user.username}#${member.user.discriminator}"`)
+                msg.channel.send(`Successfully kicked **${member.user.username}#${member.user.discriminator}**`)
             }
         ).catch(
             () => {
@@ -59,7 +136,7 @@ client.on("message", async (msg: Discord.Message) => {
         )
     }
 
-    if (msg.content.startsWith("$ban") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Mod"))
+    if (opscommand(msg,prefix,"ban") && byroles(msg,["Mod","Owner"]))
     {
         let user = msg.mentions.members.first();
         if (!user)
@@ -74,7 +151,7 @@ client.on("message", async (msg: Discord.Message) => {
 
         member.ban().then(
             (member) => {
-                msg.channel.send(`Successfully banned "${member.user.username}#${member.user.discriminator}"`)
+                msg.channel.send(`Successfully banned **${member.user.username}#${member.user.discriminator}**`)
             }
         ).catch(
             () => {
@@ -82,8 +159,8 @@ client.on("message", async (msg: Discord.Message) => {
             }
         )
     }
-
-    if (msg.content.startsWith("$report"))
+    
+    if (opscommand(msg,prefix,"report"))
     {
         let arr = msg.content.split(" ");
         if (arr.length > 2 || arr.length == 2) {
@@ -96,12 +173,14 @@ client.on("message", async (msg: Discord.Message) => {
         let member = msg.guild.member(msg.author);
         if (!member) {return}
         let reports = msg.guild.channels.cache.find(channel => channel.name == "reports");
+        if (reports.isText()) {
         (await reports.send(
             `**REPORT by ${msg.author.username}#${msg.author.discriminator} @ ${arr[1]}**`
-        )).suppressEmbeds();        
+        )).suppressEmbeds();
+        }
     }
 
-    if (msg.content.startsWith("$cr") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Creditor" || role.name == "Owner" || role.name == "Mod" )) {
+    if (opscommand(msg,prefix,"cr") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Creditor" || role.name == "Owner" || role.name == "Mod" )) {
         let params = msg.content.split(" ");
 
         let rolename = params[1];
@@ -125,7 +204,7 @@ client.on("message", async (msg: Discord.Message) => {
         ).then( (role) => { msg.channel.send(`**Created role <@&${role.id}> with color ${role.hexColor}**`); msg.guild.member(msg.author).roles.add(role) } ).catch( (role) => {msg.channel.send("Man you're probably an admin or you messed up thr colors"); } )
     }
 
-    if (msg.content.startsWith("$modapply"))
+    if (opscommand(msg,prefix,"modapply"))
     {
         let arr = msg.content.split(" ");
         if (arr.length > 2 || arr.length == 2) {
@@ -138,12 +217,14 @@ client.on("message", async (msg: Discord.Message) => {
         let member = msg.guild.member(msg.author);
         if (!member) {return}
         let applications = msg.guild.channels.cache.find(channel => channel.name == "mod-requests");
-        applications.send(
-            `**${msg.author.username}#${msg.author.discriminator} has applied for <@&775643247103311885>**\n**The Reason provided for consideration:** ${eval(arr[1]) != "" ? eval(arr[1]) : "None"}`
-        );
+        if (applications.isText()) {
+            applications.send(
+                `**${msg.author.username}#${msg.author.discriminator} has applied for <@&775643247103311885>**\n**The Reason provided for consideration:** ${eval(arr[1]) != "" ? eval(arr[1]) : "None"}`
+            );
+        }
     }
 
-    if (msg.content.startsWith("$trainee") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Mod" || role.name == "Admin"))
+    if (opscommand(msg,prefix,"trainee") && byroles(msg,["Owner","Mod"]))
     {
 
         let assignee = msg.mentions.users.first();
@@ -164,7 +245,7 @@ client.on("message", async (msg: Discord.Message) => {
 
     }
 
-    if (msg.content.startsWith("$apnt") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Mod" || role.name == "Admin"))
+    if (opscommand(msg,prefix,"apnt") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Owner"))
     {
 
         let assignee = msg.mentions.users.first();
@@ -175,7 +256,7 @@ client.on("message", async (msg: Discord.Message) => {
 
     }
 
-    if (msg.content.startsWith("$dapnt") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Admin"))
+    if (opscommand(msg,prefix,"dapnt") && msg.guild.member(msg.author).roles.cache.find(role => role.name == "Admin"))
     {
 
         let assignee = msg.mentions.users.first();
@@ -184,6 +265,18 @@ client.on("message", async (msg: Discord.Message) => {
         if (!member) {return}
         member.roles.remove(msg.guild.roles.cache.find(role => role.name == "Mod"))
 
+    }
+
+    if (opscommand(msg,prefix,"prefix"))
+    {
+        let nprefix = msg.content.split(" ")[1];
+        if (!nprefix)
+        {
+            msg.channel.send("Syntax: `$prefix <THE_NEW_PREFIX>`");
+            return;
+        }
+        prefix = nprefix;
+        onready();
     }
 })
 
